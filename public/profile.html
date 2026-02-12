@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Личный кабинет</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<script src="auth-check.js"></script>
+<style>
+  body{
+    background-image: url("https://cdn.pixabay.com/photo/2020/02/13/05/53/coronavirus-4844592_1280.jpg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+
+  /* чтобы контент был поверх */
+  .container{
+    position: relative;
+    z-index: 1;
+  }
+
+  /* если на странице есть большой заголовок */
+  .page-title{
+    text-align:center;
+    margin: 22px 0 14px;
+    color: #fff;
+    text-shadow: 0 6px 20px rgba(0,0,0,0.65);
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    font-size: 34px;
+  }
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="container header-inner">
+
+    <div class="logo">
+      <a href="index.html">Реабилитация лёгких</a>
+    </div>
+
+    <nav class="nav">
+      <a href="index.html">Главная</a>
+      <a href="education.html">Обучение</a>
+      <a href="news.html">Новости</a> 
+      <a href="profile.html">Личный кабинет</a>
+    </nav>
+
+    <div class="burger" onclick="toggleMenu()">☰</div>
+
+  </div>
+
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">Главная</a>
+    <a href="education.html">Обучение</a>
+    <a href="news.html">Новости</a> 
+    <a href="profile.html">Личный кабинет</a>
+  </div>
+</header>
+
+<section class="container" style="padding:80px 0;">
+
+<h1 class="section-title">Личный кабинет</h1>
+
+<div class="card" style="margin-bottom:30px;">
+  <h3>Пользователь</h3>
+  <p><strong>Имя:</strong> <span id="userName">Загрузка...</span></p>
+  <p><strong>Email:</strong> <span id="userEmail">Загрузка...</span></p>
+  <p><strong>Статус курса:</strong> <span id="courseStatus">Загрузка...</span></p>
+</div>
+
+<div class="card" style="margin-bottom:30px;">
+  <h3>Прогресс обучения</h3>
+  
+  <div class="progress-bar" style="width: 100%; height: 30px; background: #E3F2FD; border-radius: 15px; overflow: hidden; margin: 20px 0;">
+    <div id="progressFill" style="height: 100%; background: #1E88E5; width: 0%; transition: width 0.3s;"></div>
+  </div>
+  
+  <p id="progressText" style="font-size: 18px; font-weight: bold; color: #1E88E5;">Пройдено уроков: 0 из 7</p>
+  
+  <div id="testSection" style="margin-top: 20px; display: none;">
+    <p style="color: #f57c00;">⚠️ Пройдите тест для получения сертификата</p>
+    <a href="test.html" class="btn">📝 Пройти тест</a>
+  </div>
+</div>
+
+<!-- NEW: Separate Certificate Card -->
+<div class="card" id="certificateCard" style="display: none;">
+  <h3>🏆 Сертификат</h3>
+  <p style="color: #2e7d32; font-weight: bold; margin-bottom: 15px;">
+    ✅ Поздравляем! Вы успешно завершили образовательную программу!
+  </p>
+  <p style="margin-bottom: 20px;">
+    Вы прошли все 7 уроков и сдали итоговый тест. Теперь вы можете скачать свой сертификат о прохождении курса.
+  </p>
+  <a href="certificate.html" class="btn">📜 Посмотреть и скачать сертификат</a>
+</div>
+
+</section>
+
+<script src="menu.js"></script>
+<script>
+checkAuth();
+
+// Загрузка данных пользователя
+async function loadUserProfile() {
+  try {
+    // Получаем данные пользователя
+    const userResponse = await fetch('/api/user');
+    if (!userResponse.ok) {
+      window.location.href = 'auth.html';
+      return;
+    }
+    const user = await userResponse.json();
+    
+    // Отображаем данные пользователя - ПОКАЗЫВАЕМ FULL_NAME!
+    document.getElementById('userName').textContent = user.full_name || user.username || 'Не указано';
+    document.getElementById('userEmail').textContent = user.email || 'Не указано';
+    
+    // Получаем прогресс
+    const progressResponse = await fetch('/api/progress');
+    if (progressResponse.ok) {
+      const progress = await progressResponse.json();
+      const completed = progress.filter(p => p.completed).length;
+      const total = 7;
+      const percent = (completed / total) * 100;
+      
+      // Обновляем прогресс-бар
+      document.getElementById('progressFill').style.width = percent + '%';
+      document.getElementById('progressText').textContent = `Пройдено уроков: ${completed} из ${total}`;
+      
+      // Проверяем статус курса
+      if (completed === total) {
+        // Все уроки пройдены, проверяем тест
+        const testResponse = await fetch('/api/test/results');
+        if (testResponse.ok) {
+          const testData = await testResponse.json();
+          const passedTest = testData.results?.find(r => r.passed);
+          
+          if (passedTest) {
+            document.getElementById('courseStatus').textContent = 'Завершён ✅';
+            document.getElementById('certificateCard').style.display = 'block';
+          } else {
+            document.getElementById('courseStatus').textContent = 'Требуется тест';
+            document.getElementById('testSection').style.display = 'block';
+          }
+        } else {
+          document.getElementById('courseStatus').textContent = 'Требуется тест';
+          document.getElementById('testSection').style.display = 'block';
+        }
+      } else {
+        document.getElementById('courseStatus').textContent = `В процессе (${completed}/7)`;
+      }
+    }
+    
+  } catch (error) {
+    console.error('Ошибка загрузки профиля:', error);
+    document.getElementById('userName').textContent = 'Ошибка загрузки';
+    document.getElementById('userEmail').textContent = 'Ошибка загрузки';
+  }
+}
+
+// Загружаем данные при открытии страницы
+window.addEventListener('DOMContentLoaded', loadUserProfile);
+</script>
+
+</body>
+</html>

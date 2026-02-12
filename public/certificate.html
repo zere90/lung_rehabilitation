@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Сертификат</title>
+
+  <link rel="stylesheet" href="style.css">
+  <script src="auth-check.js"></script>
+
+  <style>
+    body{
+      margin:0;
+      background: #eef6ff;
+    }
+
+    .cert-wrap{
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+
+    .cert{
+      background: white;
+      border: 14px solid #1E88E5;
+      border-radius: 26px;
+      padding: 60px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+
+    .cert h1{
+      margin: 0 0 10px 0;
+      letter-spacing: 3px;
+      color: #0D47A1;
+      font-size: 46px;
+    }
+
+    .cert .sub{
+      margin: 0 0 30px 0;
+      color: #555;
+      font-size: 18px;
+    }
+
+    .name{
+      font-size: 40px;
+      font-weight: 800;
+      color: #1E88E5;
+      margin: 24px 0 22px 0;
+      padding-bottom: 14px;
+      border-bottom: 3px solid #1E88E5;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .desc{
+      font-size: 18px;
+      color: #333;
+      line-height: 1.8;
+      margin: 18px 0 0 0;
+    }
+
+    .meta{
+      margin-top: 34px;
+      display:flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      color: #666;
+      font-size: 15px;
+    }
+
+    .signatures{
+      margin-top: 40px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      text-align: center;
+    }
+
+    .sig{
+      padding-top: 12px;
+      border-top: 2px solid #0D47A1;
+    }
+
+    .sig strong{ display:block; }
+    .sig small{ color:#666; display:block; margin-top:6px; line-height:1.35; }
+
+    .actions{
+      margin: 18px 0 0 0;
+      display:flex;
+      justify-content:center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Печать в PDF */
+    @media print {
+      header, .actions { display: none !important; }
+      body { background: white; }
+      .cert-wrap{ margin:0; padding:0; }
+      .cert{
+        box-shadow: none;
+        border-radius: 0;
+        border: 0;
+        padding: 0;
+      }
+      @page { size: A4 landscape; margin: 0; }
+    }
+  </style>
+</head>
+
+<body>
+<header class="header">
+  <div class="container header-inner">
+    <div class="logo">
+      <a href="index.html">Реабилитация лёгких</a>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Главная</a>
+      <a href="education.html">Обучение</a>
+      <a href="news.html">Новости</a>
+      <a href="profile.html">Личный кабинет</a>
+    </nav>
+    <div class="burger" onclick="toggleMenu()">☰</div>
+  </div>
+
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">Главная</a>
+    <a href="education.html">Обучение</a>
+    <a href="news.html">Новости</a>
+    <a href="profile.html">Личный кабинет</a>
+  </div>
+</header>
+
+<div class="cert-wrap">
+  <div class="cert" id="certCard">
+    <h1>СЕРТИФИКАТ</h1>
+    <p class="sub">об успешном завершении образовательной программы</p>
+
+    <div class="name" id="personName">Загрузка...</div>
+
+    <p class="desc">
+      Подтверждает, что вышеназванное лицо успешно прошло образовательную программу<br>
+      <strong>«Реабилитация после лечения рака лёгких»</strong><br>
+      включающую 7 учебных модулей и итоговую аттестацию.
+    </p>
+
+    <p class="desc" style="margin-top: 18px;">
+      Результат теста: <strong><span id="scoreText">—</span></strong>
+    </p>
+
+    <div class="signatures">
+      <div class="sig">
+        <strong>Әділғазыұлы Шыңғыс</strong>
+        <small>Врач онколог-хирург, магистр медицины, PhD докторант</small>
+      </div>
+      <div class="sig">
+        <strong>Адылханов Т.А.</strong>
+        <small>Доктор медицинских наук, профессор, главный консультант по онкологии ННOЦ</small>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div>Дата выдачи: <strong id="dateText">—</strong></div>
+      <div>№ <strong id="numberText">—</strong></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" onclick="window.print()">🧾 Скачать PDF</button>
+    <a class="btn" href="education.html" style="background:white; color:var(--primary); border:2px solid var(--primary);">
+      ← Назад к курсу
+    </a>
+  </div>
+</div>
+
+<script src="menu.js"></script>
+<script>
+  // ПРАВИЛЬНАЯ ФУНКЦИЯ ДЛЯ СЕРТИФИКАТА
+  async function loadCertificateData() {
+    checkAuth();
+    
+    try {
+      const response = await fetch('/api/certificate', {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        // Если нет сертификата, редиректим на тест
+        window.location.href = 'test.html';
+        return;
+      }
+
+      const cert = await response.json();
+
+      // Заполняем данные сертификата
+      document.getElementById('personName').textContent = cert.full_name;
+      document.getElementById('scoreText').textContent = `${cert.score} из ${cert.total_questions}`;
+      document.getElementById('numberText').textContent = cert.certificate_number;
+      
+      const date = new Date(cert.issued_at);
+      document.getElementById('dateText').textContent = date.toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+    } catch (error) {
+      console.error('Ошибка загрузки сертификата:', error);
+      alert('Ошибка загрузки сертификата. Возможно, вы еще не прошли тест.');
+      window.location.href = 'test.html';
+    }
+  }
+
+  // Загружаем данные при открытии страницы
+  window.addEventListener('DOMContentLoaded', loadCertificateData);
+</script>
+
+</body>
+</html>
