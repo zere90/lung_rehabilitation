@@ -107,7 +107,7 @@ body {
 .section-title {
   text-align: center;
   font-size: 32px;
-  color: var(--dark);
+  color: #3987ff;
   margin-bottom: 50px;
   font-weight: 700;
 }
@@ -597,5 +597,6 @@ body {
   .section-title {
     font-size: 24px;
   }
+
 
 }
