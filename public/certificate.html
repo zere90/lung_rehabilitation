@@ -74,7 +74,7 @@
     .signatures{
       margin-top: 40px;
       display:grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 28px;
       text-align: center;
     }
@@ -84,8 +84,19 @@
       border-top: 2px solid #0D47A1;
     }
 
-    .sig strong{ display:block; }
-    .sig small{ color:#666; display:block; margin-top:6px; line-height:1.35; }
+    .sig strong{ 
+      display:block; 
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    
+    .sig small{ 
+      color:#666; 
+      display:block; 
+      margin-top:6px; 
+      line-height:1.4; 
+      font-size: 13px;
+    }
 
     .actions{
       margin: 18px 0 0 0;
@@ -107,6 +118,21 @@
         padding: 0;
       }
       @page { size: A4 landscape; margin: 0; }
+    }
+
+    @media (max-width: 768px) {
+      .signatures {
+        grid-template-columns: 1fr;
+      }
+      .cert {
+        padding: 30px 20px;
+      }
+      .cert h1 {
+        font-size: 32px;
+      }
+      .name {
+        font-size: 28px;
+      }
     }
   </style>
 </head>
@@ -157,8 +183,12 @@
         <small>Врач онколог-хирург, магистр медицины, PhD докторант</small>
       </div>
       <div class="sig">
-        <strong>Адылханов Т.А.</strong>
-        <small>Доктор медицинских наук, профессор, главный консультант по онкологии ННOЦ</small>
+        <strong>Булегенов Толкын Алпысбаевич</strong>
+        <small>Доктор медицинских наук, профессор кафедры госпитальной хирургии, анестезиологии и реаниматологии НАО «Медицинский университет Семей»</small>
+      </div>
+      <div class="sig">
+        <strong>Адылханов Тасболат Алпысбесович</strong>
+        <small>Доктор медицинских наук, профессор по онкологии Национального научного онкологического центра</small>
       </div>
     </div>
 
@@ -178,7 +208,6 @@
 
 <script src="menu.js"></script>
 <script>
-  // ПРАВИЛЬНАЯ ФУНКЦИЯ ДЛЯ СЕРТИФИКАТА
   async function loadCertificateData() {
     checkAuth();
     
@@ -189,14 +218,12 @@
       });
 
       if (!response.ok) {
-        // Если нет сертификата, редиректим на тест
         window.location.href = 'test.html';
         return;
       }
 
       const cert = await response.json();
 
-      // Заполняем данные сертификата
       document.getElementById('personName').textContent = cert.full_name;
       document.getElementById('scoreText').textContent = `${cert.score} из ${cert.total_questions}`;
       document.getElementById('numberText').textContent = cert.certificate_number;
@@ -215,9 +242,9 @@
     }
   }
 
-  // Загружаем данные при открытии страницы
   window.addEventListener('DOMContentLoaded', loadCertificateData);
 </script>
 
 </body>
 </html>
+
